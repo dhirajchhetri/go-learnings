@@ -1,17 +1,29 @@
 package main
 
 import (
+	"bufio"
+	"flag"
 	"fmt"
-	"net/http"
+	"log"
+	"os"
+	"strings"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Web services from GO")
-	})
+	level := flag.String("level", "CRITICAL", "log level to filter for ")
+	flag.Parse()
 
-	http.HandleFunc(("/home"), func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./test.html")
-	})
-	http.ListenAndServe(":3000", nil)
+	f, err := os.Open("./log.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	bufReader := bufio.NewReader(f)
+	for line, err := bufReader.ReadString('\n'); err == nil; line, err = bufReader.ReadString('\n') {
+		if strings.Contains(line, *level) {
+			fmt.Println(line)
+		}
+	}
+
 }
